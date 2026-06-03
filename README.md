@@ -1,5 +1,7 @@
 # KeyPulse
 
+![KeyPulse app icon](src/game_input_tracker/assets/keypulse-icon.png)
+
 **KeyPulse** is a native Windows desktop analytics app for gamers who want to understand how they play.
 
 It detects supported game processes, starts a local session when the game opens, counts keyboard and mouse inputs while that game is running, and saves long-term history in SQLite. No web dashboard, no SaaS account, no browser shell.

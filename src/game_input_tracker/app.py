@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import sys
 from datetime import datetime
+from importlib.resources import files
 
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QStyle, QSystemTrayIcon
 
 from game_input_tracker.core.game_catalog import GameCandidate
@@ -30,6 +31,10 @@ class AppController:
         self.repository = TrackerRepository(create_session_factory(self.engine))
 
         self.window = MainWindow(self.repository)
+        self.icon = load_app_icon()
+        if not self.icon.isNull():
+            self.app.setWindowIcon(self.icon)
+            self.window.setWindowIcon(self.icon)
         self.window.refresh_requested.connect(self.refresh)
         self.window.startup_toggled.connect(self.set_start_with_windows)
 
@@ -140,7 +145,11 @@ class AppController:
 
     def _create_tray(self) -> QSystemTrayIcon:
         tray = QSystemTrayIcon(self.window)
-        tray.setIcon(self.window.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon))
+        tray.setIcon(
+            self.icon
+            if not self.icon.isNull()
+            else self.window.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+        )
         menu = QMenu()
         show_action = QAction("Show Dashboard", menu)
         show_action.triggered.connect(self.window.showNormal)
@@ -198,6 +207,11 @@ def set_start_with_windows(enabled: bool) -> None:
                 winreg.DeleteValue(key, "KeyPulse")
             except FileNotFoundError:
                 pass
+
+
+def load_app_icon() -> QIcon:
+    icon_path = files("game_input_tracker").joinpath("assets/keypulse-icon.png")
+    return QIcon(str(icon_path))
 
 
 def run() -> int:
