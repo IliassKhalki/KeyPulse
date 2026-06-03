@@ -1,0 +1,140 @@
+from __future__ import annotations
+
+from collections import Counter
+from threading import Lock
+
+from PySide6.QtCore import QObject, Signal
+
+
+KEY_ALIASES = {
+    "alt_l": "Alt",
+    "alt_r": "Alt",
+    "backspace": "Backspace",
+    "caps_lock": "Caps Lock",
+    "cmd": "Windows",
+    "ctrl_l": "Ctrl",
+    "ctrl_r": "Ctrl",
+    "delete": "Delete",
+    "enter": "Enter",
+    "esc": "Esc",
+    "shift": "Shift",
+    "shift_l": "Shift",
+    "shift_r": "Shift",
+    "space": "Space",
+    "tab": "Tab",
+}
+
+
+class InputTracker(QObject):
+    counters_changed = Signal(int, int)
+    hook_error = Signal(str)
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._keyboard_listener = None
+        self._mouse_listener = None
+        self._active = False
+        self._lock = Lock()
+        self._key_counts: Counter[str] = Counter()
+        self._mouse_counts: Counter[str] = Counter()
+
+    def start_hooks(self) -> None:
+        try:
+            from pynput import keyboard, mouse
+
+            self._keyboard_listener = keyboard.Listener(on_press=self._on_key_press)
+            self._mouse_listener = mouse.Listener(on_click=self._on_click, on_scroll=self._on_scroll)
+            self._keyboard_listener.start()
+            self._mouse_listener.start()
+        except Exception as exc:  # pragma: no cover - depends on OS hooks
+            self.hook_error.emit(str(exc))
+
+    def stop_hooks(self) -> None:
+        for listener in (self._keyboard_listener, self._mouse_listener):
+            if listener:
+                listener.stop()
+        self._keyboard_listener = None
+        self._mouse_listener = None
+
+    def begin_session(self) -> None:
+        with self._lock:
+            self._active = True
+            self._key_counts.clear()
+            self._mouse_counts.clear()
+        self.counters_changed.emit(0, 0)
+
+    def end_session(self) -> tuple[Counter[str], Counter[str]]:
+        with self._lock:
+            self._active = False
+            keys = self._key_counts.copy()
+            mouse = self._mouse_counts.copy()
+            self._key_counts.clear()
+            self._mouse_counts.clear()
+        self.counters_changed.emit(0, 0)
+        return keys, mouse
+
+    def drain_counts(self) -> tuple[Counter[str], Counter[str]]:
+        with self._lock:
+            keys = self._key_counts.copy()
+            mouse = self._mouse_counts.copy()
+            self._key_counts.clear()
+            self._mouse_counts.clear()
+        return keys, mouse
+
+    def _on_key_press(self, key) -> None:
+        key_name = normalize_key(key)
+        if not key_name:
+            return
+        with self._lock:
+            if not self._active:
+                return
+            self._key_counts[key_name] += 1
+            key_total = sum(self._key_counts.values())
+            mouse_total = sum(self._mouse_counts.values())
+        self.counters_changed.emit(key_total, mouse_total)
+
+    def _on_click(self, _x, _y, button, pressed: bool) -> None:
+        if not pressed:
+            return
+        button_name = normalize_button(button)
+        if not button_name:
+            return
+        with self._lock:
+            if not self._active:
+                return
+            self._mouse_counts[button_name] += 1
+            key_total = sum(self._key_counts.values())
+            mouse_total = sum(self._mouse_counts.values())
+        self.counters_changed.emit(key_total, mouse_total)
+
+    def _on_scroll(self, _x, _y, _dx, dy) -> None:
+        button_name = "Scroll Up" if dy > 0 else "Scroll Down"
+        with self._lock:
+            if not self._active:
+                return
+            self._mouse_counts[button_name] += 1
+            key_total = sum(self._key_counts.values())
+            mouse_total = sum(self._mouse_counts.values())
+        self.counters_changed.emit(key_total, mouse_total)
+
+
+def normalize_key(key) -> str | None:
+    char = getattr(key, "char", None)
+    if char:
+        if char.isprintable() and len(char) == 1:
+            return char.upper()
+        return None
+    raw = str(key).replace("Key.", "").replace("'", "")
+    return KEY_ALIASES.get(raw, raw.replace("_", " ").title())
+
+
+def normalize_button(button) -> str | None:
+    raw = str(button).replace("Button.", "").lower()
+    if raw == "left":
+        return "Left Click"
+    if raw == "right":
+        return "Right Click"
+    if raw == "middle":
+        return "Middle Click"
+    return raw.title()
+
