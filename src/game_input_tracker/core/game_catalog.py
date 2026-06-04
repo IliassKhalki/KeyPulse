@@ -28,6 +28,8 @@ KNOWN_GAMES: dict[str, str] = {
     "r5apex.exe": "Apex Legends",
     "overwatch.exe": "Overwatch",
     "destiny2.exe": "Destiny 2",
+    "warframe.exe": "Warframe",
+    "warframe.x64.exe": "Warframe",
 }
 
 IGNORED_PROCESS_NAMES = {
