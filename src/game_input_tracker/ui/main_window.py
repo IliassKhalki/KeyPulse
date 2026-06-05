@@ -43,6 +43,7 @@ class MetricCard(QFrame):
 class MainWindow(QMainWindow):
     refresh_requested = Signal()
     startup_toggled = Signal(bool)
+    overlay_toggled = Signal(bool)
 
     def __init__(self, repository: TrackerRepository) -> None:
         super().__init__()
@@ -87,9 +88,13 @@ class MainWindow(QMainWindow):
         refresh.clicked.connect(self.refresh_requested.emit)
         self.startup = QCheckBox("Start with Windows")
         self.startup.toggled.connect(self.startup_toggled.emit)
+        self.overlay = QPushButton("Overlay")
+        self.overlay.setCheckable(True)
+        self.overlay.toggled.connect(self.overlay_toggled.emit)
 
         row.addLayout(title_box, 1)
         row.addWidget(self.startup)
+        row.addWidget(self.overlay)
         row.addWidget(refresh)
         row.addWidget(self.current_game)
         self.content_layout.addLayout(row)
@@ -101,9 +106,18 @@ class MainWindow(QMainWindow):
         self.keyboard = MetricCard("Keyboard Presses")
         self.mouse = MetricCard("Mouse Inputs")
         self.games = MetricCard("Games Tracked")
+        self.session_duration = MetricCard("This Session")
         self.session_keys = MetricCard("Current Session Keys")
         self.session_mouse = MetricCard("Current Session Mouse")
-        cards = [self.playtime, self.keyboard, self.mouse, self.games, self.session_keys, self.session_mouse]
+        cards = [
+            self.playtime,
+            self.keyboard,
+            self.mouse,
+            self.games,
+            self.session_duration,
+            self.session_keys,
+            self.session_mouse,
+        ]
         for index, card in enumerate(cards):
             grid.addWidget(card, index // 3, index % 3)
         self.content_layout.addLayout(grid)
@@ -138,10 +152,18 @@ class MainWindow(QMainWindow):
             self.subtitle.setText("Waiting for a supported game")
             self.session_keys.set_value("0")
             self.session_mouse.set_value("0")
+            self.session_duration.set_value("0m")
 
     def update_session_counters(self, key_count: int, mouse_count: int) -> None:
         self.session_keys.set_value(compact_number(key_count))
         self.session_mouse.set_value(compact_number(mouse_count))
+
+    def refresh_session_duration(self) -> None:
+        if not self._session_started_at:
+            self.session_duration.set_value("0m")
+            return
+        elapsed = int((datetime.utcnow() - self._session_started_at).total_seconds())
+        self.session_duration.set_value(format_duration(elapsed))
 
     def refresh_dashboard(self) -> None:
         summary = self.repository.lifetime_summary()

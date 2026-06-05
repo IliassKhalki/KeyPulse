@@ -10,12 +10,14 @@ It detects supported game processes, starts a local session when the game opens,
 
 - A 6-second branded entrance on launch
 - Game sessions from process start to process exit
+- A separate live timer for the current session
 - Total playtime per session and per game
 - Total keyboard presses
 - Per-key press counts such as `W`, `A`, `Space`, `Shift`, and `Tab`
 - Mouse input counts for left click, right click, middle click, scroll up, and scroll down
 - Lifetime totals across every tracked game
 - Recent sessions, most played games, most used keys, and input heatmaps
+- Optional real-time keyboard/mouse overlay for live pressed inputs
 
 ## What It Does Not Track
 
@@ -39,6 +41,30 @@ KeyPulse intentionally tracks only explicit game executables:
 - Custom executable mappings added through the local settings store
 
 It does not automatically treat every process inside a game folder as a game. This keeps background apps, launchers, overlays, browsers, and chat clients out of your stats.
+
+## Sessions
+
+Each detected game launch creates a separate session row. The dashboard also shows lifetime totals, but session history is not merged into one fake session.
+
+Example:
+
+```text
+Warframe session 1: 19:00 -> 20:15
+Warframe session 2: 22:10 -> 23:00
+```
+
+Those remain two different sessions. Per-game totals are calculated from the session rows.
+
+## Live Overlay
+
+The dashboard has an **Overlay** toggle. When enabled, KeyPulse opens an always-on-top transparent overlay showing live keyboard and mouse presses during an active tracked session.
+
+Current overlay support:
+
+- Keyboard: WASD, Shift, Ctrl, Space
+- Mouse: left click and right click
+
+Controller overlays for Xbox and PlayStation layouts are planned, but they need a controller backend such as XInput before they can show real controller button states.
 
 Built-in examples include:
 

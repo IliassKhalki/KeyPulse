@@ -27,6 +27,7 @@ KEY_ALIASES = {
 
 class InputTracker(QObject):
     counters_changed = Signal(int, int)
+    active_inputs_changed = Signal(object)
     hook_error = Signal(str)
 
     def __init__(self) -> None:
@@ -37,12 +38,16 @@ class InputTracker(QObject):
         self._lock = Lock()
         self._key_counts: Counter[str] = Counter()
         self._mouse_counts: Counter[str] = Counter()
+        self._active_inputs: set[str] = set()
 
     def start_hooks(self) -> None:
         try:
             from pynput import keyboard, mouse
 
-            self._keyboard_listener = keyboard.Listener(on_press=self._on_key_press)
+            self._keyboard_listener = keyboard.Listener(
+                on_press=self._on_key_press,
+                on_release=self._on_key_release,
+            )
             self._mouse_listener = mouse.Listener(on_click=self._on_click, on_scroll=self._on_scroll)
             self._keyboard_listener.start()
             self._mouse_listener.start()
@@ -61,7 +66,9 @@ class InputTracker(QObject):
             self._active = True
             self._key_counts.clear()
             self._mouse_counts.clear()
+            self._active_inputs.clear()
         self.counters_changed.emit(0, 0)
+        self.active_inputs_changed.emit(set())
 
     def end_session(self) -> tuple[Counter[str], Counter[str]]:
         with self._lock:
@@ -70,7 +77,9 @@ class InputTracker(QObject):
             mouse = self._mouse_counts.copy()
             self._key_counts.clear()
             self._mouse_counts.clear()
+            self._active_inputs.clear()
         self.counters_changed.emit(0, 0)
+        self.active_inputs_changed.emit(set())
         return keys, mouse
 
     def drain_counts(self) -> tuple[Counter[str], Counter[str]]:
@@ -89,23 +98,43 @@ class InputTracker(QObject):
             if not self._active:
                 return
             self._key_counts[key_name] += 1
+            self._active_inputs.add(key_name)
             key_total = sum(self._key_counts.values())
             mouse_total = sum(self._mouse_counts.values())
+            active_inputs = set(self._active_inputs)
         self.counters_changed.emit(key_total, mouse_total)
+        self.active_inputs_changed.emit(active_inputs)
+
+    def _on_key_release(self, key) -> None:
+        key_name = normalize_key(key)
+        if not key_name:
+            return
+        with self._lock:
+            self._active_inputs.discard(key_name)
+            active_inputs = set(self._active_inputs)
+        self.active_inputs_changed.emit(active_inputs)
 
     def _on_click(self, _x, _y, button, pressed: bool) -> None:
-        if not pressed:
-            return
         button_name = normalize_button(button)
         if not button_name:
             return
         with self._lock:
-            if not self._active:
+            if not self._active and pressed:
                 return
-            self._mouse_counts[button_name] += 1
-            key_total = sum(self._key_counts.values())
-            mouse_total = sum(self._mouse_counts.values())
-        self.counters_changed.emit(key_total, mouse_total)
+            if not pressed:
+                self._active_inputs.discard(button_name)
+                active_inputs = set(self._active_inputs)
+                key_total = sum(self._key_counts.values())
+                mouse_total = sum(self._mouse_counts.values())
+            else:
+                self._mouse_counts[button_name] += 1
+                self._active_inputs.add(button_name)
+                key_total = sum(self._key_counts.values())
+                mouse_total = sum(self._mouse_counts.values())
+                active_inputs = set(self._active_inputs)
+        if pressed:
+            self.counters_changed.emit(key_total, mouse_total)
+        self.active_inputs_changed.emit(active_inputs)
 
     def _on_scroll(self, _x, _y, _dx, dy) -> None:
         button_name = "Scroll Up" if dy > 0 else "Scroll Down"
@@ -115,7 +144,9 @@ class InputTracker(QObject):
             self._mouse_counts[button_name] += 1
             key_total = sum(self._key_counts.values())
             mouse_total = sum(self._mouse_counts.values())
+            active_inputs = set(self._active_inputs)
         self.counters_changed.emit(key_total, mouse_total)
+        self.active_inputs_changed.emit(active_inputs)
 
 
 def normalize_key(key) -> str | None:
@@ -137,4 +168,3 @@ def normalize_button(button) -> str | None:
     if raw == "middle":
         return "Middle Click"
     return raw.title()
-

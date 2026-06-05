@@ -19,6 +19,7 @@ from game_input_tracker.data.database import (
 )
 from game_input_tracker.data.repository import TrackerRepository
 from game_input_tracker.ui.main_window import MainWindow
+from game_input_tracker.ui.overlay import InputOverlay
 from game_input_tracker.ui.splash import SplashScreen
 from game_input_tracker.ui.theme import STYLE_SHEET
 
@@ -39,6 +40,8 @@ class AppController:
             self.window.setWindowIcon(self.icon)
         self.window.refresh_requested.connect(self.refresh)
         self.window.startup_toggled.connect(self.set_start_with_windows)
+        self.overlay = InputOverlay()
+        self.window.overlay_toggled.connect(self.overlay.set_overlay_visible)
 
         self.monitor = ProcessMonitor()
         self.monitor.set_custom_games(self.repository.custom_games())
@@ -47,6 +50,7 @@ class AppController:
 
         self.input_tracker = InputTracker()
         self.input_tracker.counters_changed.connect(self.window.update_session_counters)
+        self.input_tracker.active_inputs_changed.connect(self.overlay.set_active_inputs)
         self.input_tracker.hook_error.connect(self.on_hook_error)
 
         self.flush_timer = QTimer()
@@ -56,6 +60,9 @@ class AppController:
         self.dashboard_timer = QTimer()
         self.dashboard_timer.setInterval(10000)
         self.dashboard_timer.timeout.connect(self.refresh)
+        self.session_timer = QTimer()
+        self.session_timer.setInterval(1000)
+        self.session_timer.timeout.connect(self.window.refresh_session_duration)
 
         self.tray = self._create_tray()
         self.active_session_id: int | None = None
@@ -74,6 +81,7 @@ class AppController:
         self.monitor.start()
         self.flush_timer.start()
         self.dashboard_timer.start()
+        self.session_timer.start()
         self.refresh()
         self.splash.close()
         self.window.show()
@@ -87,6 +95,7 @@ class AppController:
         self.input_tracker.stop_hooks()
         self.monitor.stop()
         self.tray.hide()
+        self.overlay.hide()
         self.app.quit()
 
     def on_game_started(self, candidate: GameCandidate) -> None:
@@ -95,6 +104,7 @@ class AppController:
         self.active_game_id = tracking_session.game_id
         self.input_tracker.begin_session()
         self.window.set_active_game(candidate.name, datetime.utcnow())
+        self.window.refresh_session_duration()
         self.tray.showMessage(
             "KeyPulse",
             f"Tracking started for {candidate.name}",
@@ -106,6 +116,7 @@ class AppController:
     def on_game_stopped(self, _candidate: GameCandidate) -> None:
         self.close_active_session()
         self.window.set_active_game(None)
+        self.overlay.set_active_inputs(set())
         self.refresh()
 
     def flush_inputs(self) -> None:
