@@ -15,7 +15,7 @@ class InputOverlay(QWidget):
             | Qt.WindowType.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(1120, 530)
+        self.setFixedSize(900, 480)
         self._active_inputs: set[str] = set()
         self._controller_inputs: set[str] = set()
         self._drag_origin: QPoint | None = None
@@ -48,8 +48,8 @@ class InputOverlay(QWidget):
         self.move(x, y)
 
     def _resize_for_controller(self) -> None:
-        target_width = 1220 if self._controller_connected else 1120
-        target_height = 620 if self._controller_connected else 530
+        target_width = 1180 if self._controller_connected else 900
+        target_height = 560 if self._controller_connected else 480
         if self.width() == target_width and self.height() == target_height:
             return
         old_center = self.geometry().center()
@@ -109,20 +109,6 @@ class InputOverlay(QWidget):
         rows = [
             [
                 ("Esc", 1.2),
-                ("F1", 1),
-                ("F2", 1),
-                ("F3", 1),
-                ("F4", 1),
-                ("F5", 1),
-                ("F6", 1),
-                ("F7", 1),
-                ("F8", 1),
-                ("F9", 1),
-                ("F10", 1),
-                ("F11", 1),
-                ("F12", 1),
-            ],
-            [
                 ("`", 1),
                 ("1", 1),
                 ("2", 1),
@@ -204,25 +190,7 @@ class InputOverlay(QWidget):
                 self._draw_key(painter, label, x, y, width, 42)
                 x += width + gap
 
-        num_x = 806
-        num_y = 122
-        numpad = [
-            [("Ins", 1), ("Home", 1), ("PgUp", 1), ("Num", 1), ("/", 1), ("*", 1), ("-", 1)],
-            [("Delete", 1), ("End", 1), ("PgDn", 1), ("7", 1), ("8", 1), ("9", 1), ("+", 1)],
-            [("", 1), ("", 1), ("", 1), ("4", 1), ("5", 1), ("6", 1), ("+", 1)],
-            [("", 1), ("", 1), ("", 1), ("1", 1), ("2", 1), ("3", 1), ("Enter", 1)],
-            [("", 1), ("", 1), ("", 1), ("0", 2), (".", 1), ("Enter", 1)],
-        ]
-        for row_index, row in enumerate(numpad):
-            x = num_x
-            y = num_y + row_index * 48
-            for label, span in row:
-                width = int(38 * span + gap * (span - 1))
-                if label:
-                    self._draw_key(painter, label, x, y, width, 36)
-                x += width + gap
-
-        mouse_y = 438
+        mouse_y = 390
         self._draw_key(painter, "Left Click", 42, mouse_y, 126, 42)
         self._draw_key(painter, "Middle Click", 176, mouse_y, 136, 42)
         self._draw_key(painter, "Right Click", 320, mouse_y, 136, 42)
@@ -230,8 +198,8 @@ class InputOverlay(QWidget):
         self._draw_key(painter, "Scroll Down", 598, mouse_y, 136, 42)
 
     def _draw_controller(self, painter: QPainter) -> None:
-        x = 805
-        y = 372
+        x = 795
+        y = 300
         painter.setPen(QColor("#9fb0c3"))
         painter.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
         status = "Controller connected" if "Controller Connected" in self._controller_inputs else "No XInput controller"
