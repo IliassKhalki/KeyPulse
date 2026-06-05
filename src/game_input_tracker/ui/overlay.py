@@ -15,7 +15,7 @@ class InputOverlay(QWidget):
             | Qt.WindowType.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(900, 480)
+        self.setFixedSize(520, 300)
         self._active_inputs: set[str] = set()
         self._controller_inputs: set[str] = set()
         self._drag_origin: QPoint | None = None
@@ -48,8 +48,8 @@ class InputOverlay(QWidget):
         self.move(x, y)
 
     def _resize_for_controller(self) -> None:
-        target_width = 1180 if self._controller_connected else 900
-        target_height = 560 if self._controller_connected else 480
+        target_width = 940 if self._controller_connected else 520
+        target_height = 420 if self._controller_connected else 300
         if self.width() == target_width and self.height() == target_height:
             return
         old_center = self.geometry().center()
@@ -102,104 +102,33 @@ class InputOverlay(QWidget):
             event.accept()
 
     def _draw_keyboard(self, painter: QPainter) -> None:
-        x0 = 34
-        y0 = 66
-        unit = 44
-        gap = 6
-        rows = [
-            [
-                ("Esc", 1.2),
-                ("`", 1),
-                ("1", 1),
-                ("2", 1),
-                ("3", 1),
-                ("4", 1),
-                ("5", 1),
-                ("6", 1),
-                ("7", 1),
-                ("8", 1),
-                ("9", 1),
-                ("0", 1),
-                ("-", 1),
-                ("=", 1),
-                ("Backspace", 2.1),
-            ],
-            [
-                ("Tab", 1.45),
-                ("Q", 1),
-                ("W", 1),
-                ("E", 1),
-                ("R", 1),
-                ("T", 1),
-                ("Y", 1),
-                ("U", 1),
-                ("I", 1),
-                ("O", 1),
-                ("P", 1),
-                ("[", 1),
-                ("]", 1),
-                ("\\", 1.55),
-            ],
-            [
-                ("Caps Lock", 1.8),
-                ("A", 1),
-                ("S", 1),
-                ("D", 1),
-                ("F", 1),
-                ("G", 1),
-                ("H", 1),
-                ("J", 1),
-                ("K", 1),
-                ("L", 1),
-                (";", 1),
-                ("'", 1),
-                ("Enter", 2.15),
-            ],
-            [
-                ("Shift", 2.35),
-                ("Z", 1),
-                ("X", 1),
-                ("C", 1),
-                ("V", 1),
-                ("B", 1),
-                ("N", 1),
-                ("M", 1),
-                (",", 1),
-                (".", 1),
-                ("/", 1),
-                ("Shift", 2.6),
-            ],
-            [
-                ("Ctrl", 1.4),
-                ("Windows", 1.4),
-                ("Alt", 1.4),
-                ("Space", 6.2),
-                ("Alt", 1.4),
-                ("Ctrl", 1.4),
-                ("Left", 1),
-                ("Up", 1),
-                ("Down", 1),
-                ("Right", 1),
-            ],
+        keys = [
+            ("1", 42, 66, 52, 42),
+            ("2", 102, 66, 52, 42),
+            ("3", 162, 66, 52, 42),
+            ("4", 222, 66, 52, 42),
+            ("Q", 72, 118, 52, 42),
+            ("W", 132, 118, 52, 42),
+            ("E", 192, 118, 52, 42),
+            ("A", 102, 170, 52, 42),
+            ("S", 162, 170, 52, 42),
+            ("D", 222, 170, 52, 42),
+            ("Shift", 42, 222, 96, 42),
+            ("Ctrl", 146, 222, 76, 42),
+            ("Space", 230, 222, 150, 42),
+            ("G", 300, 118, 52, 42),
+            ("X", 300, 170, 52, 42),
+            ("V", 360, 170, 52, 42),
         ]
-        for row_index, row in enumerate(rows):
-            x = x0
-            y = y0 + row_index * 56
-            for label, span in row:
-                width = int(unit * span + gap * (span - 1))
-                self._draw_key(painter, label, x, y, width, 42)
-                x += width + gap
+        for label, x, y, width, height in keys:
+            self._draw_key(painter, label, x, y, width, height)
 
-        mouse_y = 390
-        self._draw_key(painter, "Left Click", 42, mouse_y, 126, 42)
-        self._draw_key(painter, "Middle Click", 176, mouse_y, 136, 42)
-        self._draw_key(painter, "Right Click", 320, mouse_y, 136, 42)
-        self._draw_key(painter, "Scroll Up", 464, mouse_y, 126, 42)
-        self._draw_key(painter, "Scroll Down", 598, mouse_y, 136, 42)
+        self._draw_key(painter, "Left Click", 392, 66, 98, 42)
+        self._draw_key(painter, "Right Click", 392, 118, 98, 42)
 
     def _draw_controller(self, painter: QPainter) -> None:
-        x = 795
-        y = 300
+        x = 540
+        y = 142
         painter.setPen(QColor("#9fb0c3"))
         painter.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
         status = "Controller connected" if "Controller Connected" in self._controller_inputs else "No XInput controller"
