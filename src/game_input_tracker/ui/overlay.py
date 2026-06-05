@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtCore import QPoint, QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QFont, QMouseEvent, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QWidget
 
 
@@ -15,13 +15,16 @@ class InputOverlay(QWidget):
             | Qt.WindowType.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(1220, 620)
+        self.setFixedSize(1120, 530)
         self._active_inputs: set[str] = set()
         self._controller_inputs: set[str] = set()
+        self._drag_origin: QPoint | None = None
+        self._was_positioned_by_user = False
 
     def set_overlay_visible(self, visible: bool) -> None:
         if visible:
-            self._center_near_bottom()
+            if not self._was_positioned_by_user:
+                self._center_near_bottom()
             self.show()
         else:
             self.hide()
@@ -32,6 +35,7 @@ class InputOverlay(QWidget):
 
     def set_controller_inputs(self, active_inputs: object) -> None:
         self._controller_inputs = set(active_inputs or [])
+        self._resize_for_controller()
         self.update()
 
     def _center_near_bottom(self) -> None:
@@ -39,26 +43,63 @@ class InputOverlay(QWidget):
         if not screen:
             return
         geometry = screen.availableGeometry()
-        x = geometry.center().x() - self.width() // 2
+        x = max(geometry.left() + 16, geometry.center().x() - self.width() // 2)
         y = max(geometry.top() + 24, geometry.bottom() - self.height() - 48)
         self.move(x, y)
+
+    def _resize_for_controller(self) -> None:
+        target_width = 1220 if self._controller_connected else 1120
+        target_height = 620 if self._controller_connected else 530
+        if self.width() == target_width and self.height() == target_height:
+            return
+        old_center = self.geometry().center()
+        self.setFixedSize(target_width, target_height)
+        if self._was_positioned_by_user:
+            self.move(old_center - self.rect().center())
+        elif self.isVisible():
+            self._center_near_bottom()
+
+    @property
+    def _controller_connected(self) -> bool:
+        return "Controller Connected" in self._controller_inputs
 
     def paintEvent(self, _event) -> None:
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         panel = QRectF(8, 8, self.width() - 16, self.height() - 16)
-        painter.setBrush(QColor(10, 15, 21, 222))
-        painter.setPen(QPen(QColor("#2b3b4e"), 1.4))
+        painter.setBrush(QColor(10, 15, 21, 168))
+        painter.setPen(QPen(QColor(43, 59, 78, 150), 1.2))
         painter.drawRoundedRect(panel, 20, 20)
 
         painter.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         painter.setPen(QColor("#7dd3fc"))
         painter.drawText(QRectF(28, 22, 540, 26), Qt.AlignmentFlag.AlignLeft, "KEYPULSE LIVE INPUT")
         painter.setPen(QColor("#f7b955"))
-        painter.drawText(QRectF(760, 22, 420, 26), Qt.AlignmentFlag.AlignRight, "FULL KEYBOARD + XINPUT CONTROLLER")
+        header = "DRAG TO MOVE"
+        if self._controller_connected:
+            header = "FULL KEYBOARD + XINPUT CONTROLLER"
+        painter.drawText(QRectF(self.width() - 460, 22, 420, 26), Qt.AlignmentFlag.AlignRight, header)
 
         self._draw_keyboard(painter)
-        self._draw_controller(painter)
+        if self._controller_connected:
+            self._draw_controller(painter)
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_origin = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        if self._drag_origin is not None and event.buttons() & Qt.MouseButton.LeftButton:
+            self.move(event.globalPosition().toPoint() - self._drag_origin)
+            self._was_positioned_by_user = True
+            event.accept()
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_origin = None
+            self._was_positioned_by_user = True
+            event.accept()
 
     def _draw_keyboard(self, painter: QPainter) -> None:
         x0 = 34
@@ -196,8 +237,8 @@ class InputOverlay(QWidget):
         status = "Controller connected" if "Controller Connected" in self._controller_inputs else "No XInput controller"
         painter.drawText(QRectF(x, y - 30, 360, 22), Qt.AlignmentFlag.AlignLeft, status)
 
-        painter.setBrush(QColor(18, 27, 38, 224))
-        painter.setPen(QPen(QColor("#34465c"), 1.5))
+        painter.setBrush(QColor(18, 27, 38, 176))
+        painter.setPen(QPen(QColor(52, 70, 92, 170), 1.5))
         painter.drawRoundedRect(QRectF(x + 25, y + 22, 330, 168), 64, 64)
 
         self._draw_stick(painter, "LS", x + 92, y + 110)
@@ -213,8 +254,8 @@ class InputOverlay(QWidget):
 
     def _draw_key(self, painter: QPainter, label: str, x: int, y: int, width: int, height: int) -> None:
         active = label in self._active_inputs
-        fill = QColor("#22d3ee") if active else QColor(23, 32, 43, 224)
-        border = QColor("#a5f3fc") if active else QColor("#334155")
+        fill = QColor("#22d3ee") if active else QColor(23, 32, 43, 150)
+        border = QColor("#a5f3fc") if active else QColor(51, 65, 85, 155)
         text = QColor("#061018") if active else QColor("#e6eef7")
         painter.setBrush(fill)
         painter.setPen(QPen(border, 1.5))
@@ -233,8 +274,8 @@ class InputOverlay(QWidget):
         height: int,
     ) -> None:
         active = label in self._controller_inputs
-        fill = QColor("#f59e0b") if active else QColor(28, 39, 52, 235)
-        border = QColor("#fde68a") if active else QColor("#45566d")
+        fill = QColor("#f59e0b") if active else QColor(28, 39, 52, 158)
+        border = QColor("#fde68a") if active else QColor(69, 86, 109, 155)
         text = QColor("#111827") if active else QColor("#e6eef7")
         painter.setBrush(fill)
         painter.setPen(QPen(border, 1.4))
@@ -259,8 +300,8 @@ class InputOverlay(QWidget):
         color: str,
     ) -> None:
         active = active_label in self._controller_inputs
-        painter.setBrush(QColor(color) if active else QColor(28, 39, 52, 235))
-        painter.setPen(QPen(QColor("#e5e7eb") if active else QColor("#45566d"), 1.4))
+        painter.setBrush(QColor(color) if active else QColor(28, 39, 52, 158))
+        painter.setPen(QPen(QColor("#e5e7eb") if active else QColor(69, 86, 109, 155), 1.4))
         painter.drawEllipse(QPointF(x + 16, y + 16), 16, 16)
         painter.setPen(QColor("#071018") if active else QColor("#e6eef7"))
         painter.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
@@ -271,8 +312,8 @@ class InputOverlay(QWidget):
             label in self._controller_inputs
             for label in (f"{prefix} Up", f"{prefix} Down", f"{prefix} Left", f"{prefix} Right")
         )
-        painter.setBrush(QColor("#22d3ee") if active else QColor(12, 18, 26, 240))
-        painter.setPen(QPen(QColor("#a5f3fc") if active else QColor("#45566d"), 2))
+        painter.setBrush(QColor("#22d3ee") if active else QColor(12, 18, 26, 168))
+        painter.setPen(QPen(QColor("#a5f3fc") if active else QColor(69, 86, 109, 155), 2))
         painter.drawEllipse(QPointF(cx, cy), 30, 30)
         painter.setPen(QColor("#061018") if active else QColor("#e6eef7"))
         painter.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))

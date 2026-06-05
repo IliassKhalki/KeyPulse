@@ -57,13 +57,13 @@ Those remain two different sessions. Per-game totals are calculated from the ses
 
 ## Live Overlay
 
-The dashboard has an **Overlay** toggle. When enabled, KeyPulse opens an always-on-top transparent overlay showing live keyboard, mouse, and controller presses.
+The dashboard has an **Overlay** toggle. When enabled, KeyPulse opens an always-on-top transparent overlay showing live keyboard, mouse, and controller presses. Drag the overlay with the mouse to place it anywhere on screen.
 
 Current overlay support:
 
 - Keyboard: full keyboard layout, including function keys, arrows, and numpad
 - Mouse: left click, middle click, right click, scroll up, and scroll down counters
-- Controller: XInput live overlay for Xbox controllers
+- Controller: XInput live overlay for Xbox controllers, shown only when a controller is detected
 - PlayStation controllers: supported when Steam Input or DS4Windows exposes the controller as XInput
 
 Controller buttons are labeled with Xbox and PlayStation-style names where possible, such as `A/Cross`, `B/Circle`, `X/Square`, `Y/Triangle`, `LB/L1`, `RB/R1`, `LT/L2`, and `RT/R2`.
