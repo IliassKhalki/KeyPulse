@@ -8,6 +8,7 @@ It detects supported game processes, starts a local session when the game opens,
 
 ## What It Tracks
 
+- A 6-second branded entrance on launch
 - Game sessions from process start to process exit
 - Total playtime per session and per game
 - Total keyboard presses
@@ -107,6 +108,20 @@ The packaged app is created at:
 dist\KeyPulse\KeyPulse.exe
 ```
 
+You can share the whole `dist\KeyPulse` folder with a friend. They run:
+
+```text
+KeyPulse.exe
+```
+
+For a cleaner download, compress the folder:
+
+```powershell
+Compress-Archive -Path dist\KeyPulse -DestinationPath KeyPulse-portable.zip -Force
+```
+
+Then upload `KeyPulse-portable.zip` to GitHub Releases.
+
 ## Build The Installer
 
 Install Inno Setup, then compile:
@@ -120,6 +135,16 @@ The installer output is:
 ```text
 packaging\windows\dist-installer\KeyPulseSetup.exe
 ```
+
+For friends, the best production flow is:
+
+1. Build `dist\KeyPulse\KeyPulse.exe` with PyInstaller.
+2. Build `KeyPulseSetup.exe` with Inno Setup.
+3. Create a GitHub Release.
+4. Upload `KeyPulseSetup.exe`.
+5. Your friends download and run the installer.
+
+Unsigned Windows apps may show a SmartScreen warning. A production release should eventually be code-signed.
 
 ## Project Structure
 

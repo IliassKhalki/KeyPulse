@@ -19,6 +19,7 @@ from game_input_tracker.data.database import (
 )
 from game_input_tracker.data.repository import TrackerRepository
 from game_input_tracker.ui.main_window import MainWindow
+from game_input_tracker.ui.splash import SplashScreen
 from game_input_tracker.ui.theme import STYLE_SHEET
 
 
@@ -32,6 +33,7 @@ class AppController:
 
         self.window = MainWindow(self.repository)
         self.icon = load_app_icon()
+        self.splash = SplashScreen(self.icon)
         if not self.icon.isNull():
             self.app.setWindowIcon(self.icon)
             self.window.setWindowIcon(self.icon)
@@ -61,6 +63,10 @@ class AppController:
         self._shutting_down = False
 
     def start(self) -> None:
+        self.splash.show_centered()
+        QTimer.singleShot(6000, self._finish_startup)
+
+    def _finish_startup(self) -> None:
         self.window.startup.blockSignals(True)
         self.window.startup.setChecked(is_start_with_windows_enabled())
         self.window.startup.blockSignals(False)
@@ -69,6 +75,7 @@ class AppController:
         self.flush_timer.start()
         self.dashboard_timer.start()
         self.refresh()
+        self.splash.close()
         self.window.show()
         self.tray.show()
 
