@@ -17,7 +17,7 @@ It detects supported game processes, starts a local session when the game opens,
 - Mouse input counts for left click, right click, middle click, scroll up, and scroll down
 - Lifetime totals across every tracked game
 - Recent sessions, most played games, most used keys, and input heatmaps
-- Optional real-time keyboard/mouse overlay for live pressed inputs
+- Optional real-time full keyboard, mouse, and controller overlay for live pressed inputs
 
 ## What It Does Not Track
 
@@ -57,14 +57,16 @@ Those remain two different sessions. Per-game totals are calculated from the ses
 
 ## Live Overlay
 
-The dashboard has an **Overlay** toggle. When enabled, KeyPulse opens an always-on-top transparent overlay showing live keyboard and mouse presses during an active tracked session.
+The dashboard has an **Overlay** toggle. When enabled, KeyPulse opens an always-on-top transparent overlay showing live keyboard, mouse, and controller presses.
 
 Current overlay support:
 
-- Keyboard: WASD, Shift, Ctrl, Space
-- Mouse: left click and right click
+- Keyboard: full keyboard layout, including function keys, arrows, and numpad
+- Mouse: left click, middle click, right click, scroll up, and scroll down counters
+- Controller: XInput live overlay for Xbox controllers
+- PlayStation controllers: supported when Steam Input or DS4Windows exposes the controller as XInput
 
-Controller overlays for Xbox and PlayStation layouts are planned, but they need a controller backend such as XInput before they can show real controller button states.
+Controller buttons are labeled with Xbox and PlayStation-style names where possible, such as `A/Cross`, `B/Circle`, `X/Square`, `Y/Triangle`, `LB/L1`, `RB/R1`, `LT/L2`, and `RT/R2`.
 
 Built-in examples include:
 

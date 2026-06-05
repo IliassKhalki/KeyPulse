@@ -8,6 +8,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QStyle, QSystemTrayIcon
 
+from game_input_tracker.core.controller_tracker import ControllerTracker
 from game_input_tracker.core.game_catalog import GameCandidate
 from game_input_tracker.core.input_tracker import InputTracker
 from game_input_tracker.core.process_monitor import ProcessMonitor
@@ -42,6 +43,10 @@ class AppController:
         self.window.startup_toggled.connect(self.set_start_with_windows)
         self.overlay = InputOverlay()
         self.window.overlay_toggled.connect(self.overlay.set_overlay_visible)
+        self.controller_tracker = ControllerTracker()
+        self.controller_tracker.active_controller_inputs_changed.connect(
+            self.overlay.set_controller_inputs
+        )
 
         self.monitor = ProcessMonitor()
         self.monitor.set_custom_games(self.repository.custom_games())
@@ -78,6 +83,7 @@ class AppController:
         self.window.startup.setChecked(is_start_with_windows_enabled())
         self.window.startup.blockSignals(False)
         self.input_tracker.start_hooks()
+        self.controller_tracker.start()
         self.monitor.start()
         self.flush_timer.start()
         self.dashboard_timer.start()
@@ -93,6 +99,7 @@ class AppController:
         self._shutting_down = True
         self.close_active_session()
         self.input_tracker.stop_hooks()
+        self.controller_tracker.stop()
         self.monitor.stop()
         self.tray.hide()
         self.overlay.hide()
