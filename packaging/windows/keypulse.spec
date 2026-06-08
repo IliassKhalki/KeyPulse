@@ -37,6 +37,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
+    icon=os.path.join(project_root, "src/game_input_tracker/assets/keypulse.ico"),
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
