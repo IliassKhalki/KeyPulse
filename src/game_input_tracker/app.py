@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import ctypes
 from datetime import datetime
 from importlib.resources import files
 
@@ -23,6 +24,10 @@ from game_input_tracker.ui.main_window import MainWindow
 from game_input_tracker.ui.overlay import InputOverlay
 from game_input_tracker.ui.splash import SplashScreen
 from game_input_tracker.ui.theme import STYLE_SHEET
+
+
+ERROR_ALREADY_EXISTS = 183
+_INSTANCE_MUTEX = None
 
 
 class AppController:
@@ -218,7 +223,9 @@ def set_start_with_windows(enabled: bool) -> None:
         return
     import winreg
 
-    command = f'"{sys.executable}" -m game_input_tracker'
+    command = f'"{sys.executable}"'
+    if not getattr(sys, "frozen", False):
+        command = f'"{sys.executable}" -m game_input_tracker'
     with winreg.OpenKey(
         winreg.HKEY_CURRENT_USER,
         r"Software\Microsoft\Windows\CurrentVersion\Run",
@@ -240,6 +247,8 @@ def load_app_icon() -> QIcon:
 
 
 def run() -> int:
+    if not acquire_single_instance_lock():
+        return 0
     QApplication.setApplicationName("KeyPulse")
     QApplication.setOrganizationName("KeyPulse")
     app = QApplication(sys.argv)
@@ -249,3 +258,11 @@ def run() -> int:
     app.aboutToQuit.connect(controller.shutdown)
     controller.start()
     return app.exec()
+
+
+def acquire_single_instance_lock() -> bool:
+    global _INSTANCE_MUTEX
+    if sys.platform != "win32":
+        return True
+    _INSTANCE_MUTEX = ctypes.windll.kernel32.CreateMutexW(None, False, "Local\\KeyPulseSingleInstance")
+    return ctypes.windll.kernel32.GetLastError() != ERROR_ALREADY_EXISTS
