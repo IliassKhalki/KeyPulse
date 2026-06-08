@@ -156,6 +156,17 @@ Run the bot:
 
 Full setup notes are in `docs/discord_bot.md`.
 
+Discord responses are private by default where Discord supports ephemeral slash-command responses.
+
+## Security And Policies
+
+- Security policy: `SECURITY.md`
+- Privacy policy: `PRIVACY.md`
+- Terms of service: `TERMS.md`
+- Linked Roles plan: `docs/linked_roles.md`
+
+Discord Linked Roles require a hosted HTTPS OAuth2 verification service. The local companion bot alone cannot be used as the Linked Roles Verification URL.
+
 ## Build The EXE
 
 ```powershell

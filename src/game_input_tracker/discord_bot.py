@@ -88,14 +88,14 @@ async def run_bot() -> None:
         embed.add_field(name="Most Played", value=str(summary["most_played_game"]), inline=True)
         embed.add_field(name="Most Used Key", value=str(summary["most_used_key"]), inline=True)
         embed.add_field(name="Most Used Mouse", value=str(summary["most_used_mouse"]), inline=True)
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @tree.command(name="keypulse_recent", description="Show recent KeyPulse game sessions.")
     @app_commands.describe(limit="How many sessions to show, from 1 to 10.")
     async def keypulse_recent(interaction: discord.Interaction, limit: int = 5) -> None:
         sessions = repository.recent_sessions(limit=_limit(limit, 1, 10))
         if not sessions:
-            await interaction.response.send_message("No KeyPulse sessions yet.")
+            await interaction.response.send_message("No KeyPulse sessions yet.", ephemeral=True)
             return
 
         lines = []
@@ -107,14 +107,14 @@ async def run_bot() -> None:
                 f"{compact_number(int(row['keyboard_presses']))} keys | "
                 f"{compact_number(int(row['mouse_inputs']))} mouse"
             )
-        await interaction.response.send_message("\n".join(lines))
+        await interaction.response.send_message("\n".join(lines), ephemeral=True)
 
     @tree.command(name="keypulse_games", description="Show top KeyPulse games by playtime.")
     @app_commands.describe(limit="How many games to show, from 1 to 10.")
     async def keypulse_games(interaction: discord.Interaction, limit: int = 5) -> None:
         games = repository.top_games(limit=_limit(limit, 1, 10))
         if not games:
-            await interaction.response.send_message("No tracked games yet.")
+            await interaction.response.send_message("No tracked games yet.", ephemeral=True)
             return
 
         lines = []
@@ -126,26 +126,28 @@ async def run_bot() -> None:
                 f"{compact_number(int(game['mouse_inputs']))} mouse | "
                 f"{compact_number(int(game['sessions']))} sessions"
             )
-        await interaction.response.send_message("\n".join(lines))
+        await interaction.response.send_message("\n".join(lines), ephemeral=True)
 
     @tree.command(name="keypulse_keys", description="Show the most-used KeyPulse keys.")
     @app_commands.describe(limit="How many keys to show, from 1 to 15.")
     async def keypulse_keys(interaction: discord.Interaction, limit: int = 10) -> None:
         keys = repository.top_keys(limit=_limit(limit, 1, 15))
         if not keys:
-            await interaction.response.send_message("No keyboard stats yet.")
+            await interaction.response.send_message("No keyboard stats yet.", ephemeral=True)
             return
 
         lines = [
             f"**{index}. {key_name}** | {compact_number(count)} presses"
             for index, (key_name, count) in enumerate(keys, start=1)
         ]
-        await interaction.response.send_message("\n".join(lines))
+        await interaction.response.send_message("\n".join(lines), ephemeral=True)
 
     @client.event
     async def on_ready() -> None:
         guild_id = os.getenv("KEYPULSE_DISCORD_GUILD_ID", "").strip()
         if guild_id:
+            if not guild_id.isdigit():
+                raise SystemExit("KEYPULSE_DISCORD_GUILD_ID must be a numeric Discord server ID.")
             guild = discord.Object(id=int(guild_id))
             tree.copy_global_to(guild=guild)
             await tree.sync(guild=guild)
