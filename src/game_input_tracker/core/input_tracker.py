@@ -58,6 +58,8 @@ class InputTracker(QObject):
         self._lock = Lock()
         self._key_counts: Counter[str] = Counter()
         self._mouse_counts: Counter[str] = Counter()
+        self._session_key_total = 0
+        self._session_mouse_total = 0
         self._active_inputs: set[str] = set()
 
     def start_hooks(self) -> None:
@@ -86,6 +88,8 @@ class InputTracker(QObject):
             self._active = True
             self._key_counts.clear()
             self._mouse_counts.clear()
+            self._session_key_total = 0
+            self._session_mouse_total = 0
             self._active_inputs.clear()
         self.counters_changed.emit(0, 0)
         self.active_inputs_changed.emit(set())
@@ -97,6 +101,8 @@ class InputTracker(QObject):
             mouse = self._mouse_counts.copy()
             self._key_counts.clear()
             self._mouse_counts.clear()
+            self._session_key_total = 0
+            self._session_mouse_total = 0
             self._active_inputs.clear()
         self.counters_changed.emit(0, 0)
         self.active_inputs_changed.emit(set())
@@ -118,9 +124,10 @@ class InputTracker(QObject):
             if not self._active:
                 return
             self._key_counts[key_name] += 1
+            self._session_key_total += 1
             self._active_inputs.add(key_name)
-            key_total = sum(self._key_counts.values())
-            mouse_total = sum(self._mouse_counts.values())
+            key_total = self._session_key_total
+            mouse_total = self._session_mouse_total
             active_inputs = set(self._active_inputs)
         self.counters_changed.emit(key_total, mouse_total)
         self.active_inputs_changed.emit(active_inputs)
@@ -144,13 +151,12 @@ class InputTracker(QObject):
             if not pressed:
                 self._active_inputs.discard(button_name)
                 active_inputs = set(self._active_inputs)
-                key_total = sum(self._key_counts.values())
-                mouse_total = sum(self._mouse_counts.values())
             else:
                 self._mouse_counts[button_name] += 1
+                self._session_mouse_total += 1
                 self._active_inputs.add(button_name)
-                key_total = sum(self._key_counts.values())
-                mouse_total = sum(self._mouse_counts.values())
+                key_total = self._session_key_total
+                mouse_total = self._session_mouse_total
                 active_inputs = set(self._active_inputs)
         if pressed:
             self.counters_changed.emit(key_total, mouse_total)
@@ -162,8 +168,9 @@ class InputTracker(QObject):
             if not self._active:
                 return
             self._mouse_counts[button_name] += 1
-            key_total = sum(self._key_counts.values())
-            mouse_total = sum(self._mouse_counts.values())
+            self._session_mouse_total += 1
+            key_total = self._session_key_total
+            mouse_total = self._session_mouse_total
             active_inputs = set(self._active_inputs)
         self.counters_changed.emit(key_total, mouse_total)
         self.active_inputs_changed.emit(active_inputs)
