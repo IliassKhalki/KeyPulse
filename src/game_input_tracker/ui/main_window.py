@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QFrame,
     QGridLayout,
+    QHeaderView,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -133,14 +134,26 @@ class MainWindow(QMainWindow):
         self.content_layout.addWidget(wrap_panel(self.heatmap))
 
     def _build_tables(self) -> None:
-        row = QHBoxLayout()
+        games_label = QLabel("Game Summary")
+        games_label.setProperty("title", True)
         self.games_table = QTableWidget(0, 5)
         self.games_table.setHorizontalHeaderLabels(["Game", "Playtime", "Keys", "Mouse", "Inputs / Hour"])
-        self.recent_table = QTableWidget(0, 5)
-        self.recent_table.setHorizontalHeaderLabels(["Game", "Started", "Duration", "Keys", "Mouse"])
-        row.addWidget(self.games_table, 1)
-        row.addWidget(self.recent_table, 1)
-        self.content_layout.addLayout(row)
+        self.games_table.setMinimumHeight(190)
+        self.games_table.verticalHeader().setVisible(False)
+        self.games_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        history_label = QLabel("Session History")
+        history_label.setProperty("title", True)
+        self.recent_table = QTableWidget(0, 6)
+        self.recent_table.setHorizontalHeaderLabels(["Game", "Started", "Ended", "Duration", "Keys", "Mouse"])
+        self.recent_table.setMinimumHeight(420)
+        self.recent_table.verticalHeader().setVisible(False)
+        self.recent_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        self.content_layout.addWidget(games_label)
+        self.content_layout.addWidget(self.games_table)
+        self.content_layout.addWidget(history_label)
+        self.content_layout.addWidget(self.recent_table)
 
     def set_active_game(self, game_name: str | None, started_at: datetime | None = None) -> None:
         self._session_started_at = started_at
@@ -180,7 +193,7 @@ class MainWindow(QMainWindow):
         self.top_keys_chart.set_data(top_keys)
         self.heatmap.set_keys(top_keys)
         self._fill_games_table(games)
-        self._fill_recent_table(self.repository.recent_sessions())
+        self._fill_recent_table(self.repository.recent_sessions(limit=50))
 
     def _fill_games_table(self, games: list[dict[str, object]]) -> None:
         self.games_table.setRowCount(len(games))
@@ -203,11 +216,17 @@ class MainWindow(QMainWindow):
         self.recent_table.setRowCount(len(sessions))
         for row_index, row in enumerate(sessions):
             started = row["started_at"]
+            ended = row["ended_at"]
             started_text = started.strftime("%Y-%m-%d %H:%M") if hasattr(started, "strftime") else "-"
+            ended_text = ended.strftime("%Y-%m-%d %H:%M") if hasattr(ended, "strftime") else "Active"
+            duration_seconds = int(row["duration_seconds"])
+            if ended is None and hasattr(started, "strftime"):
+                duration_seconds = max(0, int((datetime.utcnow() - started).total_seconds()))
             values = [
                 str(row["game"]),
                 started_text,
-                format_duration(int(row["duration_seconds"])),
+                ended_text,
+                format_duration(duration_seconds),
                 compact_number(int(row["keyboard_presses"])),
                 compact_number(int(row["mouse_inputs"])),
             ]
