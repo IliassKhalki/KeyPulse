@@ -194,6 +194,16 @@ Compress-Archive -Path dist\KeyPulse -DestinationPath KeyPulse-portable.zip -For
 
 Then upload `KeyPulse-portable.zip` to GitHub Releases.
 
+## Download The Portable Build
+
+A portable Windows build is available in `releases/KeyPulse-portable.zip`.
+
+Download the zip, extract it, and run:
+
+```text
+KeyPulse\KeyPulse.exe
+```
+
 ## Build The Installer
 
 Install Inno Setup, then compile:
