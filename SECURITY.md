@@ -10,7 +10,6 @@ KeyPulse is an early desktop analytics project. Security fixes should target the
 - Detects known game processes.
 - Counts keyboard and mouse inputs only while a tracked game session is active.
 - Stores local statistics in SQLite on the user's Windows profile.
-- Optionally runs a Discord companion bot that reads local statistics and answers slash commands.
 
 ## What KeyPulse Does Not Do
 
@@ -23,13 +22,13 @@ KeyPulse is an early desktop analytics project. Security fixes should target the
 
 ## Secrets
 
-Discord bot tokens, client secrets, OAuth secrets, webhook URLs, and `.env` files must never be committed.
+API tokens, client secrets, webhook URLs, and `.env` files must never be committed.
 
-If a Discord token is exposed:
+If a secret is exposed:
 
-1. Reset the token in the Discord Developer Portal immediately.
-2. Stop any running bot process using the old token.
-3. Restart the bot with the new token through an environment variable.
+1. Revoke or rotate the exposed secret immediately.
+2. Stop any running process using the old secret.
+3. Restart the app with the new secret through an environment variable or secure local store.
 
 ## Reporting Issues
 
@@ -40,14 +39,10 @@ Include:
 - A short description of the issue.
 - Steps to reproduce.
 - The affected version or commit.
-- Whether a secret, local database, or Discord permission is involved.
+- Whether a secret or local database is involved.
 
 ## Production Checklist
 
-- Use a fresh Discord bot token stored outside Git.
 - Keep `.env` files ignored.
-- Use least-privilege Discord permissions.
-- Use private slash-command responses for personal statistics.
 - Code-sign Windows releases before wide distribution.
-- Publish a Privacy Policy and Terms of Service before public Discord use.
-- Build Linked Roles with a hosted HTTPS OAuth2 verification service, not with local-only desktop state.
+- Publish a Privacy Policy and Terms of Service before wide public distribution.

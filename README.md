@@ -125,47 +125,11 @@ launch_keypulse.cmd
 
 You can pin that file, or use the generated `KeyPulse` Desktop shortcut.
 
-## Discord Companion Bot
-
-KeyPulse can also run as an optional Discord companion bot. This is not a replacement for the desktop app: the desktop app still tracks games and saves the local SQLite history, while the bot reads that history and answers slash commands in Discord.
-
-Available commands:
-
-- `/keypulse_stats`
-- `/keypulse_recent`
-- `/keypulse_games`
-- `/keypulse_keys`
-
-Install the optional Discord dependencies:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements-discord.txt
-```
-
-Store your Discord bot token locally:
-
-```powershell
-[Environment]::SetEnvironmentVariable("KEYPULSE_DISCORD_TOKEN", "YOUR_TOKEN_HERE", "User")
-```
-
-Run the bot:
-
-```powershell
-.\.venv\Scripts\python.exe -m game_input_tracker.discord_bot
-```
-
-Full setup notes are in `docs/discord_bot.md`.
-
-Discord responses are private by default where Discord supports ephemeral slash-command responses.
-
 ## Security And Policies
 
 - Security policy: `SECURITY.md`
 - Privacy policy: `PRIVACY.md`
 - Terms of service: `TERMS.md`
-- Linked Roles plan: `docs/linked_roles.md`
-
-Discord Linked Roles require a hosted HTTPS OAuth2 verification service. The local companion bot alone cannot be used as the Linked Roles Verification URL.
 
 ## Build The EXE
 

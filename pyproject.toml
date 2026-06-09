@@ -24,13 +24,9 @@ dev = [
   "mypy>=1.10",
   "pyinstaller>=6.8",
 ]
-discord = [
-  "discord.py>=2.4",
-]
 
 [project.scripts]
 keypulse = "game_input_tracker.__main__:main"
-keypulse-discord = "game_input_tracker.discord_bot:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

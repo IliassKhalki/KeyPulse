@@ -38,7 +38,6 @@ IGNORED_PROCESS_NAMES = {
     "chrome.exe",
     "codex.exe",
     "conhost.exe",
-    "discord.exe",
     "dwm.exe",
     "explorer.exe",
     "gameinputsvc.exe",

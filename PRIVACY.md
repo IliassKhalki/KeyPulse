@@ -33,18 +33,6 @@ KeyPulse does not intentionally collect or store:
 
 KeyPulse stores statistics locally in SQLite under the user's Windows app data directory. The data remains on the user's computer unless the user chooses to share it.
 
-## Discord Companion Bot
-
-The optional Discord companion bot reads the local KeyPulse SQLite database on the same computer where it runs. It can display summarized statistics through Discord slash commands.
-
-Slash-command responses are private by default when Discord supports ephemeral responses. Server administrators and Discord may still process interaction metadata according to Discord's own policies.
-
-KeyPulse does not require users to paste Discord bot tokens into source code. Tokens should be stored in local environment variables.
-
-## Linked Roles
-
-Discord Linked Roles require a hosted verification flow. If KeyPulse adds Linked Roles support, the verification service will request only the Discord OAuth2 permissions required to connect a user's KeyPulse stats to Discord role metadata.
-
 ## Data Sharing
 
 KeyPulse does not sell user data.
@@ -53,7 +41,7 @@ KeyPulse does not upload the local statistics database to a KeyPulse cloud servi
 
 ## Data Deletion
 
-Users can delete local KeyPulse data by removing the local SQLite database from the KeyPulse app data directory. If a future hosted Linked Roles service is added, that service must provide a way to unlink Discord accounts and delete hosted verification records.
+Users can delete local KeyPulse data by removing the local SQLite database from the KeyPulse app data directory.
 
 ## Contact
 
