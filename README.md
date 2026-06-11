@@ -168,6 +168,15 @@ Download the zip, extract it, and run:
 KeyPulse\KeyPulse.exe
 ```
 
+## Troubleshooting
+
+- If a game is not detected, confirm its executable is in the built-in catalog or add a custom executable mapping.
+- Keep the entire extracted `KeyPulse` folder together; `KeyPulse.exe` needs the adjacent `_internal` folder.
+- Closing the main window minimizes KeyPulse to the system tray so active tracking can continue.
+- Session history is stored locally in SQLite and remains available after restarting Windows.
+- The controller overlay appears only while an XInput-compatible controller is detected.
+- If global input hooks fail, launch KeyPulse from a normal Windows user session and check security software permissions.
+
 ## Build The Installer
 
 Install Inno Setup, then compile:
