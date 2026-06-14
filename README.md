@@ -130,6 +130,7 @@ You can pin that file, or use the generated `KeyPulse` Desktop shortcut.
 - Security policy: `SECURITY.md`
 - Privacy policy: `PRIVACY.md`
 - Terms of service: `TERMS.md`
+- Release history: `CHANGELOG.md`
 
 ## Build The EXE
 
