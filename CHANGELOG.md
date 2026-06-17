@@ -4,6 +4,7 @@ All notable KeyPulse changes are documented here.
 
 ## Unreleased
 
+- Clarified ongoing maintenance notes for the portable Windows build.
 - Added portable-build troubleshooting guidance.
 - Kept the public project focused on the native Windows desktop application.
 
