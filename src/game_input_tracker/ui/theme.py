@@ -34,7 +34,7 @@ QLabel[brand="true"] {
     font-weight: 800;
 }
 QPushButton {
-    background: #0e7490;
+    background: #0369a1;
     border: 0;
     border-radius: 6px;
     color: #f8fbff;
@@ -42,7 +42,7 @@ QPushButton {
     padding: 8px 12px;
 }
 QPushButton:hover {
-    background: #0891b2;
+    background: #0284c7;
 }
 QPushButton:checked {
     background: #f59e0b;
