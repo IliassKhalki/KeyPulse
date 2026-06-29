@@ -13,6 +13,7 @@ def test_compact_number() -> None:
     assert compact_number(999) == "999"
     assert compact_number(1200) == "1.2K"
     assert compact_number(1_000_000) == "1M"
+    assert compact_number(999_999) == "1M"
 
 
 def test_mouse_names() -> None:

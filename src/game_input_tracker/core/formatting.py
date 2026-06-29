@@ -3,10 +3,16 @@ from __future__ import annotations
 
 def compact_number(value: int | float) -> str:
     number = float(value or 0)
-    for suffix in ("", "K", "M", "B"):
-        if abs(number) < 1000 or suffix == "B":
+    suffixes = ("", "K", "M", "B")
+    for index, suffix in enumerate(suffixes):
+        if abs(number) < 1000 or suffix == suffixes[-1]:
             if suffix:
-                return f"{number:.1f}{suffix}".replace(".0", "")
+                rounded = round(number, 1)
+                if abs(rounded) >= 1000 and index < len(suffixes) - 1:
+                    number = rounded / 1000
+                    next_suffix = suffixes[index + 1]
+                    return f"{number:.1f}{next_suffix}".replace(".0", "")
+                return f"{rounded:.1f}{suffix}".replace(".0", "")
             return f"{int(number):,}"
         number /= 1000
     return str(value)
@@ -21,4 +27,3 @@ def format_duration(seconds: int | float) -> str:
     if hours:
         return f"{hours}h {minutes}m"
     return f"{minutes}m"
-
