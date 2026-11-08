@@ -55,6 +55,8 @@ class AppController:
 
         self.monitor = ProcessMonitor()
         self.monitor.set_custom_games(self.repository.custom_games())
+        self.monitor.set_custom_paths(self.repository.custom_game_paths())
+        self.window.games_changed.connect(self.reload_games)
         self.monitor.game_started.connect(self.on_game_started)
         self.monitor.game_stopped.connect(self.on_game_stopped)
 
@@ -155,6 +157,12 @@ class AppController:
 
     def refresh(self) -> None:
         self.window.refresh_dashboard()
+
+    def reload_games(self) -> None:
+        self.monitor.set_custom_games(self.repository.custom_games())
+        self.monitor.set_custom_paths(self.repository.custom_game_paths())
+        self.monitor.refresh_library()
+        self.monitor.scan()
 
     def set_start_with_windows(self, enabled: bool) -> None:
         try:

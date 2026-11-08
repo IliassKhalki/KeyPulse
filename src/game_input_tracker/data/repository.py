@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from datetime import datetime
 
@@ -37,6 +38,21 @@ class TrackerRepository:
                 executable, name = line.split("=", 1)
                 games[executable.strip().lower()] = name.strip()
         return games
+
+    def custom_game_paths(self) -> dict[str, str]:
+        try:
+            paths = json.loads(self.get_setting("custom_game_paths", "{}"))
+        except ValueError:
+            return {}
+        if not isinstance(paths, dict):
+            return {}
+        return {
+            path: name for path, name in paths.items()
+            if isinstance(path, str) and isinstance(name, str) and path and name.strip()
+        }
+
+    def set_custom_game_paths(self, paths: dict[str, str]) -> None:
+        self.set_setting("custom_game_paths", json.dumps(paths))
 
     def ensure_game(self, candidate: GameCandidate) -> Game:
         now = datetime.utcnow()

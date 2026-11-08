@@ -35,12 +35,24 @@ It does **not** store:
 
 ## Current Game Detection
 
-KeyPulse intentionally tracks only explicit game executables:
+KeyPulse detects games through:
 
 - Built-in known game executables
-- Custom executable mappings added through the local settings store
+- Installed Steam games, including libraries on other drives
+- Installed Epic Games Store games
+- Any executable you add using **Games > Add Game (.exe)** on the dashboard
 
-It does not automatically treat every process inside a game folder as a game. This keeps background apps, launchers, overlays, browsers, and chat clients out of your stats.
+Steam and Epic discovery reads their local installation manifests and matches running
+executables inside those installations. Common launchers, crash reporters, installers,
+and anti-cheat helpers are excluded. Libraries refresh every minute; use **Games >
+Rescan Installed Games** and save to refresh immediately.
+
+For GOG, Xbox/Game Pass, Battle.net, Ubisoft, standalone games, or missed detections,
+open **Games**, choose **Add Game (.exe)**, select the executable that runs during
+gameplay, give it a name, and **Save**. The selection is remembered across restarts
+and takes priority over automatic detection. Remove a manual selection in the same
+screen. Automatic discovery cannot guarantee every game or distinguish every helper;
+manual selections cover those cases. KeyPulse currently tracks one game at a time.
 
 ## Sessions
 
@@ -171,7 +183,7 @@ KeyPulse\KeyPulse.exe
 
 ## Troubleshooting
 
-- If a game is not detected, confirm its executable is in the built-in catalog or add a custom executable mapping.
+- If a game is not detected, open **Games > Add Game (.exe)** and select its gameplay executable, then save.
 - Keep the entire extracted `KeyPulse` folder together; `KeyPulse.exe` needs the adjacent `_internal` folder.
 - Closing the main window minimizes KeyPulse to the system tray so active tracking can continue.
 - Session history is stored locally in SQLite and remains available after restarting Windows.
@@ -222,7 +234,6 @@ Global keyboard and mouse hooks can be sensitive around anti-cheat systems. A pr
 
 ## Roadmap
 
-- Settings screen for adding custom game executables
 - Per-game opt-in and pause controls
 - Export to CSV
 - Month and weekday activity views

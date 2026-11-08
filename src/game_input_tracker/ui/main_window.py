@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 from game_input_tracker.core.formatting import compact_number, format_duration
 from game_input_tracker.data.repository import TrackerRepository
 from game_input_tracker.ui.charts import BarChart, Heatmap
+from game_input_tracker.ui.game_library import GameLibraryDialog
 
 
 class MetricCard(QFrame):
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
     refresh_requested = Signal()
     startup_toggled = Signal(bool)
     overlay_toggled = Signal(bool)
+    games_changed = Signal()
 
     def __init__(self, repository: TrackerRepository) -> None:
         super().__init__()
@@ -87,6 +89,8 @@ class MainWindow(QMainWindow):
         self.current_game.setProperty("title", True)
         refresh = QPushButton("Refresh")
         refresh.clicked.connect(self.refresh_requested.emit)
+        games = QPushButton("Games")
+        games.clicked.connect(self.edit_games)
         self.startup = QCheckBox("Start with Windows")
         self.startup.toggled.connect(self.startup_toggled.emit)
         self.overlay = QPushButton("Overlay")
@@ -96,9 +100,15 @@ class MainWindow(QMainWindow):
         row.addLayout(title_box, 1)
         row.addWidget(self.startup)
         row.addWidget(self.overlay)
+        row.addWidget(games)
         row.addWidget(refresh)
         row.addWidget(self.current_game)
         self.content_layout.addLayout(row)
+
+    def edit_games(self) -> None:
+        dialog = GameLibraryDialog(self.repository, self)
+        if dialog.exec() == GameLibraryDialog.DialogCode.Accepted:
+            self.games_changed.emit()
 
     def _build_metrics(self) -> None:
         grid = QGridLayout()

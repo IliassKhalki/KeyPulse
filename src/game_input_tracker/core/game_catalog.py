@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from game_input_tracker.core.game_library import InstalledGame, installed_game_name, normalize_path
+
 
 @dataclass(frozen=True)
 class GameCandidate:
@@ -51,6 +53,12 @@ IGNORED_PROCESS_NAMES = {
     "system",
     "taskhostw.exe",
     "windowsterminal.exe",
+    "discord.exe",
+    "epicgameslauncher.exe",
+    "epicwebhelper.exe",
+    "riotclientservices.exe",
+    "battle.net.exe",
+    "ubisoftconnect.exe",
 }
 
 
@@ -63,8 +71,15 @@ def identify_game(
     pid: int,
     executable_path: str | None,
     custom_games: dict[str, str] | None = None,
+    installed_games: list[InstalledGame] | None = None,
+    custom_paths: dict[str, str] | None = None,
 ) -> GameCandidate | None:
     executable = normalize_executable(process_name)
+    # An explicit path also supports games using a shared runtime executable.
+    if executable_path and custom_paths:
+        path = normalize_path(executable_path)
+        if path in custom_paths:
+            return GameCandidate(custom_paths[path], path, pid, executable_path)
     if not executable or executable in IGNORED_PROCESS_NAMES:
         return None
 
@@ -74,5 +89,11 @@ def identify_game(
 
     if executable in catalog:
         return GameCandidate(catalog[executable], executable, pid, executable_path)
+
+    if executable_path and installed_games:
+        name = installed_game_name(executable_path, installed_games)
+        if name:
+            # Full paths keep unrelated games named Game.exe from sharing statistics.
+            return GameCandidate(name, normalize_path(executable_path), pid, executable_path)
 
     return None

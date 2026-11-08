@@ -10,7 +10,8 @@ KeyPulse is a native Windows desktop application. It does not render a web appli
 
 2. **Process Monitor**
    - Uses `psutil.process_iter()` on a Qt timer.
-   - Tracks only known game executables or custom executable-to-game mappings stored in settings.
+   - Matches built-in executables, locally discovered Steam/Epic installations, and manual executable paths.
+   - Refreshes installation manifests every minute, including secondary Steam libraries.
    - Ignores launchers, overlays, browsers, chat apps, and unrelated background processes.
 
 3. **Input Tracker**
@@ -57,7 +58,10 @@ Global input hooks can be sensitive around anti-cheat software. A production rel
 
 ## Extensibility
 
-Custom game support is intentionally data-driven. A later settings screen can write mappings like:
+The dashboard's Games dialog saves manual executable paths and display names as JSON
+in the `custom_game_paths` setting. Exact paths override automatic detection, and
+keep games with the same executable filename separate. Save reloads the monitor
+immediately. Legacy executable-name mappings remain supported through `custom_games`:
 
 ```text
 mygame.exe=My Game

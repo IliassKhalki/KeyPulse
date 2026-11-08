@@ -4,6 +4,7 @@ import psutil
 from PySide6.QtCore import QObject, QTimer, Signal
 
 from game_input_tracker.core.game_catalog import GameCandidate, identify_game
+from game_input_tracker.core.game_library import InstalledGame, discover_installed_games, normalize_path
 
 
 class ProcessMonitor(QObject):
@@ -18,6 +19,11 @@ class ProcessMonitor(QObject):
         self._timer.timeout.connect(self.scan)
         self._active: GameCandidate | None = None
         self._custom_games: dict[str, str] = {}
+        self._custom_paths: dict[str, str] = {}
+        self._installed_games: list[InstalledGame] = []
+        self._library_timer = QTimer(self)
+        self._library_timer.setInterval(60_000)
+        self._library_timer.timeout.connect(self.refresh_library)
 
     @property
     def active_game(self) -> GameCandidate | None:
@@ -26,12 +32,21 @@ class ProcessMonitor(QObject):
     def set_custom_games(self, custom_games: dict[str, str]) -> None:
         self._custom_games = custom_games
 
+    def set_custom_paths(self, custom_paths: dict[str, str]) -> None:
+        self._custom_paths = {normalize_path(path): name for path, name in custom_paths.items()}
+
+    def refresh_library(self) -> None:
+        self._installed_games = discover_installed_games()
+
     def start(self) -> None:
+        self.refresh_library()
         self.scan()
         self._timer.start()
+        self._library_timer.start()
 
     def stop(self) -> None:
         self._timer.stop()
+        self._library_timer.stop()
 
     def scan(self) -> None:
         active_pid = self._active.process_id if self._active else None
@@ -49,6 +64,8 @@ class ProcessMonitor(QObject):
                     pid,
                     info.get("exe"),
                     self._custom_games,
+                    self._installed_games,
+                    self._custom_paths,
                 )
                 if candidate:
                     candidates.append(candidate)
